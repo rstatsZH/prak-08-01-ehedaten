@@ -39,10 +39,14 @@ Metadaten sind auf [opendata.swiss publiziert](https://opendata.swiss/de/dataset
 
 ```{r}
 
-download_link <- "https://zenodo.org/record/3964315/files/EDB_16_18_Jh_Stand_2020_07_22.CSV?download=1"
+# download_link <- "https://zenodo.org/record/3964315/files/EDB_16_18_Jh_St# and_2020_07_22.CSV?download=1"
+# 
+# ehedaten <- read_delim(download_link, delim = ";",
+#                        locale = locale(encoding = "ISO-8859-1")) 
+# 
+# write_csv(ehedaten, "data/ehedaten.csv")
 
-ehedaten <- read_delim(download_link, delim = ";",
-                       locale = locale(encoding = "ISO-8859-1")) 
+ehedaten <- read_csv("data/ehedaten.csv")
 
 ```
 
@@ -152,7 +156,7 @@ ehedaten_tidy %>%
 
 # Wir sehen hier jetzt einen Punkt für jeden Tag im jeweiligen Monat
 # Wir können diese mit geom_path verbinden. Doch nun sind die Punkte innerhalb des Monats miteinander verbunden.
-# Um die Punkte der einzelnen Tage miteinander zu verbinden, müssen wir den visuellen Eigenschaften ein zusätzliches Argument"group" geben, um die Gruppe der zu verbindenden Daten zu definieren.
+# Um die Punkte der einzelnen Tage miteinander zu verbinden, müssen wir den visuellen Eigenschaften ein zusätzliches Argument "group" geben, um die Gruppe der zu verbindenden Daten zu definieren.
 
 # Solch ein Plot/Diagram wird auch als "connected scatterplot" oder "verbundenes Streudiagramm" bezeichnet
 
