@@ -39,7 +39,7 @@ Metadaten sind auf [opendata.swiss publiziert](https://opendata.swiss/de/dataset
 
 ```{r}
 
-# download_link <- "https://zenodo.org/record/3964315/files/EDB_16_18_Jh_St# and_2020_07_22.CSV?download=1"
+# download_link <- "https://zenodo.org/record/3964315/files/EDB_16_18_Jh_Stand_2020_07_22.CSV?download=1"
 # 
 # ehedaten <- read_delim(download_link, delim = ";",
 #                        locale = locale(encoding = "ISO-8859-1")) 
@@ -65,7 +65,7 @@ ehedaten_tidy <- ehedaten %>%
   ## Teil 2 Ende: Mache ein Histogram
   
   ## Teil 3 Start 
-  mutate(datum2 = parse_date(entstehungszeitraum, format = "%Y.%m.%d")) %>% 
+  mutate(datum2 = parse_date(entstehungszeitraum, format = "%Y.%m.%d")) %>% # strptime Funktion aus base R
   mutate(
     jahr = year(datum),
     monat = month(datum, label = TRUE),
@@ -73,6 +73,7 @@ ehedaten_tidy <- ehedaten %>%
     wochentag = wday(datum, label = TRUE, week_start = 1)
   )
 
+?strptime
 ```
 
 # Daten erkunden
@@ -136,36 +137,78 @@ Aber wie kommen wir an diese?
 
 ```{r}
 
+# Weiviele Hochzeiten pro Jahr? 
 ehedaten_tidy %>% 
-  count(jahr) 
+  count(jahr)
 
+# Erklärung für nicht angezeigte Bars
+#ehedaten_tidy %>% 
+#  ggplot(aes(x = datum2)) +
+#  geom_bar(fill = "red", size = 3)
+
+# Hier liegen welche in 2017. Warum?
+ehedaten_tidy %>% 
+  ggplot(aes(x = datum)) +
+  geom_histogram()
+
+ehedaten_tidy %>% 
+  count(datum) %>%
+  arrange(desc(datum))
+
+# Zurück zu Transfomieren
+
+# Nach Jahr
 ehedaten_tidy %>% 
   ggplot(aes(x = datum2)) +
   geom_histogram(bins = 277) +
-  scale_x_date(breaks = "100 years") +
+  #scale_x_date(breaks = "20 years") +
   coord_flip()
 
+# Evolution eines Plots - Verbundenes Streudiagramm (connected scatterplot)
+
+## Schritt 1 - Bar
 ehedaten_tidy %>% 
   ggplot(aes(x = monat)) +
   geom_bar()
 
+## Schritt 2 - Col
+ehedaten_tidy %>% 
+  count(monat) %>% 
+  ggplot(aes(x = monat, y = n)) +
+  geom_col()
+
+## Schritt 3 - Point
 ehedaten_tidy %>% 
   count(monat) %>% 
   ggplot(aes(x = monat, y = n)) +
   geom_point()
 
-# Wir sehen hier jetzt einen Punkt für jeden Tag im jeweiligen Monat
-# Wir können diese mit geom_path verbinden. Doch nun sind die Punkte innerhalb des Monats miteinander verbunden.
-# Um die Punkte der einzelnen Tage miteinander zu verbinden, müssen wir den visuellen Eigenschaften ein zusätzliches Argument "group" geben, um die Gruppe der zu verbindenden Daten zu definieren.
-
-# Solch ein Plot/Diagram wird auch als "connected scatterplot" oder "verbundenes Streudiagramm" bezeichnet
-
+## Schritt 4 - Wochentag
 ehedaten_tidy %>% 
-  count(monat, tag) %>% 
-  ggplot(aes(x = tag, y = n, group = monat, color = monat)) +
+  count(monat, wochentag) %>% 
+  ggplot(aes(x = monat, y = n)) +
+  geom_point() 
+
+## Schritt 5 - Color
+ehedaten_tidy %>% 
+  count(monat, wochentag) %>% 
+  ggplot(aes(x = monat, y = n, color = wochentag)) +
+  geom_point() 
+
+## Schritt 6 - Path
+ehedaten_tidy %>% 
+  count(monat, wochentag) %>% 
+  ggplot(aes(x = monat, y = n, color = wochentag)) +
   geom_point() +
-  geom_path()  +
-  facet_wrap(~monat)
+  geom_path()
+
+## Schritt 7 - Group - Verbundenes Streudiagram
+ehedaten_tidy %>% 
+  count(monat, wochentag) %>% 
+  ggplot(aes(x = monat, y = n, color = wochentag, group = wochentag)) +
+  geom_point() +
+  geom_path()
+
 
 ```
 
