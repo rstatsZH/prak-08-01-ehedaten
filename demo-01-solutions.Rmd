@@ -60,20 +60,22 @@ ehedaten_tidy <- ehedaten %>%
   ## Teil 1 Ende: Schreibe Zusammenfassungen
   
   ## Teil 2 Start
-  mutate(datum = lubridate::ymd(entstehungszeitraum)) %>% 
+  mutate(datum = parse_date(entstehungszeitraum, format = "%Y.%m.%d")) %>% # strptime Funktion aus base R
   filter(!is.na(datum)) %>% 
+  #?parse_date
+  
   ## Teil 2 Ende: Mache ein Histogram
   
   ## Teil 3 Start 
-  mutate(datum2 = parse_date(entstehungszeitraum, format = "%Y.%m.%d")) %>% # strptime Funktion aus base R
   mutate(
     jahr = year(datum),
-    monat = month(datum, label = TRUE),
+    monat = month(datum, label = TRUE, locale = "de_CH.UTF-8"),
     tag = day(datum),
-    wochentag = wday(datum, label = TRUE, week_start = 1)
+    wochentag = wday(datum, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8")
   )
 
-?strptime
+
+
 ```
 
 # Daten erkunden
@@ -137,32 +139,28 @@ Aber wie kommen wir an diese?
 
 ```{r}
 
-# Weiviele Hochzeiten pro Jahr? 
-ehedaten_tidy %>% 
-  count(jahr)
+# Ein Histogram welches die Verteilung anzeigt
+# Der standard ist wieder 30 Bins (Box mit Breite 30 in welcher die Häufigkeit der Beobachtungen gezählt wird)
+# In diesem Fall wären das 30 Jahre
 
-# Erklärung für nicht angezeigte Bars
-#ehedaten_tidy %>% 
-#  ggplot(aes(x = datum2)) +
-#  geom_bar(fill = "red", size = 3)
-
-# Hier liegen welche in 2017. Warum?
 ehedaten_tidy %>% 
   ggplot(aes(x = datum)) +
   geom_histogram()
 
-ehedaten_tidy %>% 
-  count(datum) %>%
-  arrange(desc(datum))
+# Weiviele Hochzeiten pro Jahr? 
+# In welchem Monat oder Wochentag wurde am meisten geheiratet?
+# Dazu brauchen wir weitere Variablen
 
-# Zurück zu Transfomieren
-
-# Nach Jahr
 ehedaten_tidy %>% 
-  ggplot(aes(x = datum2)) +
-  geom_histogram(bins = 277) +
-  #scale_x_date(breaks = "20 years") +
-  coord_flip()
+  count(jahr) %>% 
+  
+  ggplot(aes(x = jahr, y = n)) +
+  geom_col()
+
+ehedaten_tidy %>% 
+  count(jahr) %>% 
+  filter(jahr < 1650) %>% 
+  arrange(desc(n))
 
 # Evolution eines Plots - Verbundenes Streudiagramm (connected scatterplot)
 
@@ -203,13 +201,15 @@ ehedaten_tidy %>%
   geom_path()
 
 ## Schritt 7 - Group - Verbundenes Streudiagram
+
 ehedaten_tidy %>% 
   count(monat, wochentag) %>% 
   ggplot(aes(x = monat, y = n, color = wochentag, group = wochentag)) +
   geom_point() +
-  geom_path()
-
+  geom_path() 
+  
 
 ```
+
 
 
