@@ -39,7 +39,7 @@ Metadaten sind auf [opendata.swiss publiziert](https://opendata.swiss/de/dataset
 
 ```{r}
 
-# download_link <- "https://zenodo.org/record/3964315/files/EDB_16_18_Jh_Stand_2020_07_22.CSV?download=1"
+# download_link <- "https://zenodo.org/record/4682801/files/EDB_16_18_Jh_Stand_2021_04_13.CSV?download=1"
 # 
 # ehedaten <- read_delim(download_link, delim = ";",
 #                        locale = locale(encoding = "ISO-8859-1")) 
@@ -56,11 +56,13 @@ ehedaten <- read_csv("data/ehedaten.csv")
 
 ehedaten_tidy <- ehedaten %>% 
   janitor::clean_names() %>% 
-  select(nachname_mann:kirchgemeinde) %>% 
+  select(nachname_mann:herkunft_frau, datum, kirchgemeinde) %>% 
   ## Teil 1 Ende: Schreibe Zusammenfassungen
   
   ## Teil 2 Start
-  mutate(datum = parse_date(entstehungszeitraum, format = "%Y.%m.%d")) %>% # strptime Funktion aus base R
+  mutate(datum_neu = lubridate::as_date(datum)) %>% 
+  
+  mutate(datum = parse_date(datum, format = "%Y.%m.%d")) %>% # strptime Funktion aus base R
   filter(!is.na(datum)) %>% 
   #?parse_date
   
@@ -73,8 +75,6 @@ ehedaten_tidy <- ehedaten %>%
     tag = day(datum),
     wochentag = wday(datum, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8")
   )
-
-
 
 ```
 
