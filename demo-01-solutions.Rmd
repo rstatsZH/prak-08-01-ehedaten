@@ -19,6 +19,7 @@ library(dplyr)
 library(readr)
 library(ggplot2)
 library(lubridate)
+library(janitor)
 
 ```
 
@@ -54,27 +55,34 @@ ehedaten <- read_csv("data/ehedaten.csv")
 
 ```{r}
 
+ehedaten
+glimpse(ehedaten)
+
+```
+
+
+```{r}
+
 ehedaten_tidy <- ehedaten %>% 
-  janitor::clean_names() %>% 
+  clean_names() %>% 
   select(nachname_mann:herkunft_frau, datum, kirchgemeinde) %>% 
   ## Teil 1 Ende: Schreibe Zusammenfassungen
   
   ## Teil 2 Start
-  mutate(datum_neu = lubridate::as_date(datum)) %>% 
+  mutate(datum_neu = as_date(datum)) %>% 
+  ## Zeige wie Datum zu Datum Neu wird
+  ## Gehe auf die "3825 failed to parse" ein, dann filter raus
+  filter(!is.na(datum_neu)) %>% 
+  ## Teil 2 Ende: Mache eine Histogram
   
-  mutate(datum = parse_date(datum, format = "%Y.%m.%d")) %>% # strptime Funktion aus base R
-  filter(!is.na(datum)) %>% 
-  #?parse_date
-  
-  ## Teil 2 Ende: Mache ein Histogram
-  
-  ## Teil 3 Start 
-  mutate(
-    jahr = year(datum),
-    monat = month(datum, label = TRUE, locale = "de_CH.UTF-8"),
-    tag = day(datum),
-    wochentag = wday(datum, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8")
-  )
+  ## Teil 3 Start: Filter vor 1900
+  filter(datum_neu < "1900-01-01") %>% 
+  mutate(jahr = year(datum_neu),
+         monat = month(datum_neu, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8"),
+         tag = day(datum_neu),
+         wochentag = wday(datum_neu, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8")) 
+
+
 
 ```
 
@@ -104,21 +112,22 @@ ehedaten_tidy %>%
   arrange(desc(n)) %>% 
   mutate(prozent = n / sum(n) * 100)
 
-vektor_top10_kirchgemeinde <- ehedaten_tidy %>% 
-  count(kirchgemeinde) %>% 
-  arrange(desc(n)) %>% 
-  head(10) %>% 
-  pull(kirchgemeinde)
-
-
-ehedaten_tidy_top10 <- ehedaten_tidy %>% 
-  filter(kirchgemeinde %in% vektor_top10_kirchgemeinde)
-
 
 ```
 
 
-# Daten Transformieren
+# Daten visualisieren
+
+```{r}
+# Ein Histogram welches die Verteilung anzeigt
+# Der standard ist wieder 30 Bins (Box mit Breite 30 in welcher die Häufigkeit der Beobachtungen gezählt wird)
+# In diesem Fall wären das 30 Jahre
+
+ehedaten_tidy %>% 
+  ggplot(aes(x = datum_neu)) +
+  geom_histogram()
+```
+
 
 Aber das war es eigentlich auch schon fast mit dem was wir zur Verfügung haben. Aber was ist mit Fragen wie:
 
@@ -135,17 +144,7 @@ Dazu brauchen wir zusätzliche Variablen, wie zum Beispiel:
 
 Aber wie kommen wir an diese?
 
-# Daten Visualisieren
-
 ```{r}
-
-# Ein Histogram welches die Verteilung anzeigt
-# Der standard ist wieder 30 Bins (Box mit Breite 30 in welcher die Häufigkeit der Beobachtungen gezählt wird)
-# In diesem Fall wären das 30 Jahre
-
-ehedaten_tidy %>% 
-  ggplot(aes(x = datum)) +
-  geom_histogram()
 
 # Weiviele Hochzeiten pro Jahr? 
 # In welchem Monat oder Wochentag wurde am meisten geheiratet?
@@ -156,11 +155,6 @@ ehedaten_tidy %>%
   
   ggplot(aes(x = jahr, y = n)) +
   geom_col()
-
-ehedaten_tidy %>% 
-  count(jahr) %>% 
-  filter(jahr < 1650) %>% 
-  arrange(desc(n))
 
 # Evolution eines Plots - Verbundenes Streudiagramm (connected scatterplot)
 

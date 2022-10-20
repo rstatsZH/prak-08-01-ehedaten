@@ -34,20 +34,20 @@ library(dplyr)
 library(readr)
 library(ggplot2)
 library(lubridate)
+library(janitor)
 
 ```
-
 
 # Daten importieren
 
 ```{r}
 
-#download_link <-  "https://zenodo.org/record/4682801/files/EDB_16_18_Jh_#Stand_2021_04_13.CSV?download=1"
-#
-#ehedaten <- read_delim(file = download_link, delim = ";",
-#           locale = locale(encoding = "ISO-8859-1"))
-#
-#write_csv(x = ehedaten, file = "data/ehedaten.csv")
+# download_link <-  "https://zenodo.org/record/4682801/files/EDB_16_18_Jh_#Stand_2021_04_13.CSV?download=1"
+# 
+# ehedaten <- read_delim(file = download_link, delim = ";",
+#            locale = locale(encoding = "ISO-8859-1"))
+# 
+# write_csv(x = ehedaten, file = "data/ehedaten.csv")
 
 ehedaten <- read_csv(file = "data/ehedaten.csv")
 ```
@@ -56,57 +56,19 @@ ehedaten <- read_csv(file = "data/ehedaten.csv")
 
 ```{r}
 
-ehedaten
-glimpse(ehedaten)
-
-library(janitor)
-
-ehedaten_tidy <- ehedaten %>% 
-  clean_names() %>% 
-  select(nachname_mann:herkunft_frau, datum, kirchgemeinde) %>% 
-  mutate(datum = as_date(datum)) %>% 
-  filter(!is.na(datum)) %>% 
-  filter(datum < "1900-01-01") %>% 
-  mutate(jahr = year(datum),
-         monat = month(datum, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8"),
-         tag = day(datum),
-         wochentag = wday(datum, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8")) 
-
-# YYYY-MM-DD
-# 1553-07-23
 
 ```
 
 
 # Daten erkunden - mit Zusammenfassungen
 
+- Was sind die häufigsten 10 Nachnamen der Männer?
+- Was sind die häufigsten 10 Nachnamen der Frauen?
+- Wieviele Männer und Frauen haben vor der Heirat den gleichen Nachnamen? Und wieviele davon die gleiche Herkunft?
+- Was sind die Top 10 Kirchengemeinden in denen geheiratet wurde? Was ist das in Prozent?
+
 ```{r}
 
-ehedaten_tidy %>% 
-  count(nachname_frau) %>% 
-  arrange(desc(n))
-
-ehedaten_tidy %>% 
-  count(nachname_mann) %>% 
-  arrange(desc(n))
-
-ehedaten_tidy %>% 
-  filter(nachname_mann == nachname_frau) %>% 
-  filter(herkunft_mann == herkunft_frau) 
-
-ehedaten_tidy %>% 
-  count(kirchgemeinde) %>% 
-  arrange(desc(n)) %>% 
-  mutate(prozent = n / sum(n) * 100)
-
-vektor_top10_kirchgemeinde <- ehedaten_tidy %>% 
-  count(kirchgemeinde) %>% 
-  arrange(desc(n)) %>% 
-  head(10) %>% 
-  pull(kirchgemeinde)
-
-ehedaten_tidy_top10 <- ehedaten_tidy %>% 
-  filter(kirchgemeinde %in% vektor_top10_kirchgemeinde)
 
 ```
 
@@ -115,33 +77,24 @@ ehedaten_tidy_top10 <- ehedaten_tidy %>%
 
 ```{r}
 
-ggplot(ehedaten_tidy, aes(x = datum_neu)) +
-  geom_histogram()
-
-ehedaten_tidy %>% 
-  count(jahr) %>% 
-  
-  ggplot(aes(x = jahr, y = n)) +
-  geom_col()
-
-
-ehedaten_tidy %>% 
-  count(jahr) %>% 
-  filter(jahr < 1650) %>% 
-  arrange(desc(n))
-
-# Verbundene Streudiagramm (connected scatterplot)
-
-ehedaten_tidy %>% 
-  count(monat, wochentag) %>% 
-  ggplot(aes(x = monat, 
-             y = n, 
-             color = wochentag, 
-             group = wochentag)) +
-  geom_point() +
-  geom_path()
-
 ```
 
+Aber das war es eigentlich auch schon fast mit dem was wir zur Verfügung haben. Aber was ist mit Fragen wie:
 
+- Wieviele Ehen wurden pro Jahr, Monat, oder Wochentag geschlossen?
+- Wie sieht die Entwicklung aus?
+- Was für Visualisierungen können wir machen?
+
+Dazu brauchen wir zusätzliche Variablen, wie zum Beispiel:
+
+- Jahr
+- Monat 
+- Tag 
+- und Wochentag?
+
+Aber wie kommen wir an diese?
+
+```{r}
+
+```
 
