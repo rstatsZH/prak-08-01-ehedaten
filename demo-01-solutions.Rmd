@@ -60,20 +60,30 @@ ehedaten_tidy <- ehedaten %>%
   ## Teil 1 Ende: Schreibe Zusammenfassungen
   
   ## Teil 2 Start
-  mutate(datum_neu = lubridate::as_date(datum)) %>% 
   
-  mutate(datum = parse_date(datum, format = "%Y.%m.%d")) %>% # strptime Funktion aus base R
+  # mutate(datum_neu = lubridate::as_date(datum)) %>% 
+  # filter(is.na(datum_neu)) %>%
+
+  ## Teil 2 Datum überschreiben
+  mutate(datum = lubridate::as_date(datum)) %>% 
   filter(!is.na(datum)) %>% 
-  #?parse_date
   
-  ## Teil 2 Ende: Mache ein Histogram
+  ## Teil 2: Mache ein Histogram
+
+  # filter(datum > "2000-01-01")  %>%
+  # arrange(desc(datum)) %>%
+  
+  filter(datum < "2000-01-01")  %>%
+  
+  ## Teil 2: Mache ein Histogram
+  
   
   ## Teil 3 Start 
   mutate(
     jahr = year(datum),
     monat = month(datum, label = TRUE, locale = "de_CH.UTF-8"),
     tag = day(datum),
-    wochentag = wday(datum, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8")
+    wochentag = wday(datum, label = TRUE, abbr = FALSE, locale = "de_CH.UTF-8", week_start = 1)
   )
 
 ```
@@ -110,7 +120,6 @@ vektor_top10_kirchgemeinde <- ehedaten_tidy %>%
   head(10) %>% 
   pull(kirchgemeinde)
 
-
 ehedaten_tidy_top10 <- ehedaten_tidy %>% 
   filter(kirchgemeinde %in% vektor_top10_kirchgemeinde)
 
@@ -140,16 +149,16 @@ Aber wie kommen wir an diese?
 ```{r}
 
 # Ein Histogram welches die Verteilung anzeigt
-# Der standard ist wieder 30 Bins (Box mit Breite 30 in welcher die Häufigkeit der Beobachtungen gezählt wird)
-# In diesem Fall wären das 30 Jahre
+
+# Der standard ist 30 Bins. Die Daten werden in 30 bins unterteilt und dann die Häufigkeit in jeder gezählt.
+# Das sind hier alle 10 Jahre weil die Daten 300 Jahre abdecken.
+# Möchten wir ein Histogram, welches die Häufigkeit pro Jahr zählt, dann wählen wir 300
 
 ehedaten_tidy %>% 
   ggplot(aes(x = datum)) +
-  geom_histogram()
+  geom_histogram(bins = 300)
 
 # Weiviele Hochzeiten pro Jahr? 
-# In welchem Monat oder Wochentag wurde am meisten geheiratet?
-# Dazu brauchen wir weitere Variablen
 
 ehedaten_tidy %>% 
   count(jahr) %>% 
@@ -161,6 +170,9 @@ ehedaten_tidy %>%
   count(jahr) %>% 
   filter(jahr < 1650) %>% 
   arrange(desc(n))
+
+# In welchem Monat oder Wochentag wurde am meisten geheiratet?
+# Dazu brauchen wir weitere Variablen
 
 # Evolution eines Plots - Verbundenes Streudiagramm (connected scatterplot)
 
@@ -193,20 +205,29 @@ ehedaten_tidy %>%
   ggplot(aes(x = monat, y = n, color = wochentag)) +
   geom_point() 
 
-## Schritt 6 - Path
+## Schritt 6 - qualitative colour
 ehedaten_tidy %>% 
   count(monat, wochentag) %>% 
   ggplot(aes(x = monat, y = n, color = wochentag)) +
   geom_point() +
-  geom_path()
+  scale_color_brewer(type = "qual", palette = 1)
 
-## Schritt 7 - Group - Verbundenes Streudiagram
 
+## Schritt 7 - Path
+ehedaten_tidy %>% 
+  count(monat, wochentag) %>% 
+  ggplot(aes(x = monat, y = n, color = wochentag)) +
+  geom_point() +
+  geom_path() +
+  scale_color_brewer(type = "qual", palette = 1)
+
+## Schritt 8 - Group - Verbundenes Streudiagram
 ehedaten_tidy %>% 
   count(monat, wochentag) %>% 
   ggplot(aes(x = monat, y = n, color = wochentag, group = wochentag)) +
   geom_point() +
-  geom_path() 
+  geom_path() +
+  scale_color_brewer(type = "qual", palette = 1)
   
 
 ```
