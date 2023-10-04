@@ -120,7 +120,7 @@ ehedaten_tidy %>%
   filter(nachname_mann == nachname_frau)  %>% 
   filter(herkunft_mann == herkunft_frau)
 
-ehedaten_tidy %>% 
+vektor_top10_kirchgemeinde <- ehedaten_tidy %>% 
   count(kirchgemeinde) %>% 
   arrange(desc(n)) %>% 
   mutate(prozent = n / sum(n) * 100)
